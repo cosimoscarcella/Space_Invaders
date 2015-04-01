@@ -53,10 +53,11 @@ set_global_assignment -name VHDL_FILE Space_Invaders.vhd
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name VHDL_FILE VGA_Framebuffer.vhd
-set_global_assignment -name VHDL_FILE Shift_register.vhd
 set_global_assignment -name VHDL_FILE vga_package.vhd
 set_global_assignment -name VHDL_FILE PLL.vhd
 set_global_assignment -name VHDL_FILE Space_Invaders_Datapath.vhd
 set_global_assignment -name VHDL_FILE VGA_Timing.vhd
 set_global_assignment -name VHDL_FILE VGA_RAMDAC.vhd
+set_global_assignment -name VHDL_FILE space_invaders_package.vhd
+set_global_assignment -name VHDL_FILE Space_Invaders_View.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

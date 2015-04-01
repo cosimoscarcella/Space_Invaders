@@ -1,7 +1,7 @@
 library ieee;
 use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
---use work.tetris_package.all;
+use work.space_invaders_package.all;
 use work.vga_package.all;
 
 
@@ -11,7 +11,7 @@ entity Space_Invaders is
         (
                 CLOCK_50            : in  std_logic;
                 KEY                 : in  std_logic_vector(3 downto 0);
-
+					 
                 SW                  : in  std_logic_vector(9 downto 9);
                 VGA_R               : out std_logic_vector(3 downto 0);
                 VGA_G               : out std_logic_vector(3 downto 0);
@@ -35,20 +35,33 @@ architecture RTL of Space_Invaders is
         signal clock              : std_logic;
 		  signal datapath_reset     : std_logic;
         signal clock_vga          : std_logic;
+		  signal time_10ms          : std_logic;
+		  signal RESET_N            : std_logic;
+		  signal ship						: ship_type;
 		
 		--NAVICELLA
 		signal ship_left		: std_logic;
 		signal ship_right		: std_logic;
-		signal ship_en			: std_logic;
+		--vga
+		signal fb_ready           : std_logic;
+		signal fb_clear           : std_logic;
+		signal fb_flip            : std_logic;
+		signal fb_draw_rect       : std_logic;
+		signal fb_fill_rect       : std_logic;
+		signal fb_draw_line       : std_logic;
+		signal fb_x0              : xy_coord_type;
+		signal fb_y0              : xy_coord_type;
+		signal fb_x1              : xy_coord_type;
+		signal fb_y1              : xy_coord_type;
+		signal fb_color           : color_type;
+		signal redraw       : std_logic;
+		
 		
 		--ALIENI
-		signal alien_en_x		: std_logic;
-		signal alien_en_y		: std_logic;
 		signal alien_left_right	: std_logic;
 		
 		--PROIETTILE
-		signal shoot_en_y		: std_logic;
-		signal shoot_load		: std_logic;
+
 		signal shoot			: std_logic;
 				
 begin
@@ -70,36 +83,36 @@ begin
 --        end process;
         
         
---        vga : entity work.VGA_Framebuffer
---                port map (
---                        CLOCK     => clock_vga,
---                        RESET_N   => RESET_N,
---                        READY     => fb_ready,
---                        COLOR     => fb_color,
---                        CLEAR     => fb_clear,
---                        DRAW_RECT => fb_draw_rect,
---                        FILL_RECT => fb_fill_rect,
---                        DRAW_LINE => fb_draw_line,
---                        FLIP      => fb_flip,   
---                        X0        => fb_x0,
---                        Y0        => fb_y0,
---                        X1        => fb_x1,
---                        Y1        => fb_y1,
---                                
---                        VGA_R     => VGA_R,
---                        VGA_G     => VGA_G,
---                        VGA_B     => VGA_B,
---                        VGA_HS    => VGA_HS,
---                        VGA_VS    => VGA_VS,
---                
---                        SRAM_ADDR => SRAM_ADDR,
---                        SRAM_DQ   => SRAM_DQ,                   
---                        SRAM_CE_N => SRAM_CE_N,
---                        SRAM_OE_N => SRAM_OE_N,
---                        SRAM_WE_N => SRAM_WE_N,
---                        SRAM_UB_N => SRAM_UB_N,
---                        SRAM_LB_N => SRAM_LB_N
---                );
+        vga : entity work.VGA_Framebuffer
+                port map (
+                        CLOCK     => clock_vga,
+                        RESET_N   => RESET_N,
+                        READY     => fb_ready,
+                        COLOR     => fb_color,
+                        CLEAR     => fb_clear,
+                        DRAW_RECT => fb_draw_rect,
+                        FILL_RECT => fb_fill_rect,
+                        DRAW_LINE => fb_draw_line,
+                        FLIP      => fb_flip,   
+                        X0        => fb_x0,
+                        Y0        => fb_y0,
+                        X1        => fb_x1,
+                        Y1        => fb_y1,
+                                
+                        VGA_R     => VGA_R,
+                        VGA_G     => VGA_G,
+                        VGA_B     => VGA_B,
+                        VGA_HS    => VGA_HS,
+                        VGA_VS    => VGA_VS,
+                
+                        SRAM_ADDR => SRAM_ADDR,
+                        SRAM_DQ   => SRAM_DQ,                   
+                        SRAM_CE_N => SRAM_CE_N,
+                        SRAM_OE_N => SRAM_OE_N,
+                        SRAM_WE_N => SRAM_WE_N,
+                        SRAM_UB_N => SRAM_UB_N,
+                        SRAM_LB_N => SRAM_LB_N
+                );
         
         
 --        controller : entity work.Space_Invaders_Controller
@@ -111,22 +124,52 @@ begin
         datapath : entity work.Space_Invaders_Datapath
                 port map (
 					CLOCK				=>	clock,
-					DATAPATH_RESET				=>	datapath_reset,
+					TIME_10MS       => time_10ms, -- Probabilmente andrà nel controller
+					RESET_N				=>	reset_n,
 					SHIP_LEFT			=>	ship_left,
-					SHIP_RIGHT			=>	ship_right,
-					SHIP_EN				=>	ship_en,
-					ALIEN_EN_X			=>	alien_en_x,
-					ALIEN_EN_Y			=>	alien_en_y,
-					ALIEN_LEFT_RIGHT	=>	alien_left_right,
-					SHOOT_EN_Y			=>	shoot_en_y,
-					SHOOT_LOAD			=>	shoot_load,
-					SHOOT				=>	shoot                
+					SHIP_RIGHT			=>	ship_right,				
+					ALIEN_LEFT_RIGHT	=>	alien_left_right,					
+					SHOOT				=>	shoot,
+					SHIP_OUT			=> ship
                 );
                         
---        view : entity work.Tetris_View
---                port map (
---                        
---                );                      
+        view : entity work.Space_Invaders_View
+                port map (
+                        CLOCK   		=>	clock,
+								RESET_N		=>	reset_n,								
+								REDRAW       => redraw,
+								
+								FB_READY       => fb_ready,
+								FB_CLEAR       => fb_clear,
+								FB_DRAW_RECT   => fb_draw_rect,
+								FB_DRAW_LINE   => fb_draw_line,
+								FB_FILL_RECT   => fb_fill_rect,
+								FB_COLOR       => fb_color,
+								FB_X0          => fb_x0,
+								FB_Y0          => fb_y0,
+								FB_X1          => fb_x1,
+								FB_Y1          => fb_y1,
+								
+								SHIP_IN			=> ship
+                );                      
         
-         
+
+		  timegen : process(CLOCK, RESET_N)
+		variable counter : integer range 0 to (500000-1);
+	begin
+		if (RESET_N = '0') then
+			counter := 0;
+			time_10ms <= '0';
+		elsif (rising_edge(clock)) then
+			if(counter = counter'high) then
+				counter := 0;
+				time_10ms <= '1';
+			else
+				counter := counter+1;
+				time_10ms <= '0';			
+			end if;
+		end if;
+	end process;
+	
+	
 end architecture;

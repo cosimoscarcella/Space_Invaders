@@ -1,52 +1,39 @@
 library ieee;
 use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
---use work.space_invaders_package.all;
---use work.vga_package.all;
+use work.space_invaders_package.all;
+use work.vga_package.all;
 
 
 entity Space_Invaders_Datapath is
         port
         (
 			CLOCK					: in  std_logic;
-			DATAPATH_RESET		: in  std_logic;	
+			TIME_10MS			: in  std_logic;
+			RESET_N				: in  std_logic;	
 			SHIP_LEFT			: in  std_logic;			
-			SHIP_RIGHT			: in  std_logic;			
-			SHIP_EN				: in  std_logic;			
-			ALIEN_EN_X			: in  std_logic;			
-			ALIEN_EN_Y			: in  std_logic;			
-			ALIEN_LEFT_RIGHT	: in  std_logic;	
-			SHOOT_EN_Y			: in  std_logic;			
-			SHOOT_LOAD			: in  std_logic;			
-			SHOOT					: in  std_logic				     
+			SHIP_RIGHT			: in  std_logic;						
+			ALIEN_LEFT_RIGHT	: in  std_logic;				
+			SHOOT					: in  std_logic;
+			SHIP_OUT				: out ship_type
         );
 
 end entity;
 
 architecture RTL of Space_Invaders_Datapath is
---Global Variable
-constant  MAX_X    : positive   := 32;
-constant  MAX_Y    : positive   := 32;
-constant  MAX_B    : positive   := 5; -- numero massimo proiettili sullo schermo
-constant  MAX_TICK    : positive   := 50000000; -- frequenza CPU FPGA
-constant  BULLET_MOVE_TIME    : positive   := 500000;
 
-type max_bullets is array (1 to MAX_B) of integer range 0 to (MAX_X-1);
-
-shared variable ship_x : integer range 0 to (MAX_X-1);
+-- Shared variables
+shared variable ship : ship_type;
 shared variable bullet_y : max_bullets;
 shared variable bullet_x : max_bullets;
 shared variable clock_tick : integer range 0 to MAX_TICK;
 
-
-
-
 begin
 
-bullet_move : process(CLOCK, DATAPATH_RESET, SHOOT)
+bullet_move : process(CLOCK, RESET_N, SHOOT)
 begin
 
-	if (DATAPATH_RESET = '1') then
+	if (RESET_N = '1') then
 		clock_tick := 0; 
 		
 	elsif (rising_edge(CLOCK)) then
@@ -78,18 +65,21 @@ begin
 
 end process;
 
-ship_move : process(CLOCK, DATAPATH_RESET, SHIP_LEFT, SHIP_RIGHT)
+ship_move : process(CLOCK, RESET_N, SHIP_LEFT, SHIP_RIGHT)
 begin
 
-	if (DATAPATH_RESET = '1') then
-		ship_x := 0; 
+	if (RESET_N = '1') then
+		ship.x := 0; 
+		SHIP_OUT <= ship;
 		
 	elsif (rising_edge(CLOCK)) then
-		if (SHIP_LEFT = '1' and ship_x > 0) then
-			ship_x := ship_x - 1 ;
+		if (SHIP_LEFT = '1' and ship.x > 0) then
+			ship.x  := ship.x - 1 ;
+			SHIP_OUT <= ship;
 			
-		elsif (SHIP_RIGHT = '1' and ship_x < MAX_X) then
-			ship_x := ship_x + 1;
+		elsif (SHIP_RIGHT = '1' and ship.x < MAX_X) then
+			ship.x := ship.x + 1;
+			SHIP_OUT <= ship;
 					
 		end if;		
 	
