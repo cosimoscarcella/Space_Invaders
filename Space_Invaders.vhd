@@ -39,7 +39,7 @@ architecture RTL of Space_Invaders is
 		  signal RESET_N            : std_logic;
 		  signal ship						: ship_type;
 		
-		--NAVICELLA
+		-- Controller Signals
 		signal ship_left		: std_logic;
 		signal ship_right		: std_logic;
 		--vga
@@ -55,6 +55,11 @@ architecture RTL of Space_Invaders is
 		signal fb_y1              : xy_coord_type;
 		signal fb_color           : color_type;
 		signal redraw       : std_logic;
+		
+		-- Controller Signals
+		signal button_shot			: std_logic;
+		signal button_right			: std_logic;
+		signal button_left			: std_logic;
 		
 		
 		--ALIENI
@@ -115,10 +120,18 @@ begin
                 );
         
         
---        controller : entity work.Space_Invaders_Controller
---                port map (
---                        
---                );
+        controller : entity work.Space_Invaders_Controller
+                port map (
+                        CLOCK				=>	clock,
+								TIME_10MS       => time_10ms,
+								RESET_N				=>	reset_n,
+								SHIP_LEFT			=>	ship_left,
+								SHIP_RIGHT			=>	ship_right,								
+								SHOOT				=>	shoot,
+								BUTTON_LEFT			=>	not(KEY(1)),
+								BUTTON_RIGHT			=>	not(KEY(0)),
+								BUTTON_SHOT			=>	not(KEY(2))
+                );
                 
                 
         datapath : entity work.Space_Invaders_Datapath
@@ -154,8 +167,8 @@ begin
                 );                      
         
 
-		  timegen : process(CLOCK, RESET_N)
-		variable counter : integer range 0 to (500000-1);
+	timegen : process(CLOCK, RESET_N)
+	variable counter : integer range 0 to (500000-1);
 	begin
 		if (RESET_N = '0') then
 			counter := 0;

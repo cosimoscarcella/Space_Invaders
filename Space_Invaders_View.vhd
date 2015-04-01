@@ -91,11 +91,11 @@ begin
 							
 						when DRAW_SHIP =>							
 							FB_COLOR     <= COLOR_RED;
---							FB_X0        <= LEFT_MARGIN + (query_cell_r.col * BLOCK_SIZE) + BLOCK_SPACING;
---							FB_Y0        <= TOP_MARGIN  + (query_cell_r.row * BLOCK_SIZE) + BLOCK_SPACING;
---							FB_X1        <= LEFT_MARGIN + (query_cell_r.col * BLOCK_SIZE) + BLOCK_SIZE - BLOCK_SPACING;
---							FB_Y1        <= TOP_MARGIN  + (query_cell_r.row * BLOCK_SIZE) + BLOCK_SIZE - BLOCK_SPACING;
---							FB_FILL_RECT <= '1';
+							FB_X0        <= SHIP_IN.x - (SHIP_IN.dim_x/2);
+							FB_Y0        <= SHIP_IN.y - (SHIP_IN.dim_y/2);
+							FB_X1        <= SHIP_IN.x + (SHIP_IN.dim_x/2);
+							FB_Y1        <= SHIP_IN.y + (SHIP_IN.dim_y/2);
+							FB_FILL_RECT <= '1';
 --							
 --					
 --							if (query_cell_r.col /= BOARD_COLUMNS-1) then

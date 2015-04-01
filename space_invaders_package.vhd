@@ -8,8 +8,10 @@ package space_invaders_package is
 	---------------------------------
 	-- Global Variable
 	---------------------------------
+	--Screen Resolution
 	constant  MAX_X    : positive   := 800;
 	constant  MAX_Y    : positive   := 600;
+	
 	constant  MAX_B    : positive   := 5; -- numero massimo proiettili sullo schermo
 	constant  MAX_TICK    : positive   := 50000000; -- frequenza CPU FPGA
 	constant  BULLET_MOVE_TIME    : positive   := 500000;
@@ -20,6 +22,7 @@ package space_invaders_package is
 	-- Ship declarations
 	type ship_type is record
 		x      	: 	integer range 0 to (MAX_X-1);
+		y      	: 	integer range 0 to (MAX_Y-1);
 		dim_x		:	positive;
 		dim_y		:	positive;
 	end record;	

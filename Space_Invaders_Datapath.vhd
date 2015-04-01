@@ -69,10 +69,11 @@ ship_move : process(CLOCK, RESET_N, SHIP_LEFT, SHIP_RIGHT)
 begin
 
 	if (RESET_N = '1') then
-		ship.x := 0; 
+		ship.x := 100; 
+		ship.y := 100; 
 		SHIP_OUT <= ship;
 		
-	elsif (rising_edge(CLOCK)) then
+	elsif (rising_edge(CLOCK) and TIME_10MS = '1') then
 		if (SHIP_LEFT = '1' and ship.x > 0) then
 			ship.x  := ship.x - 1 ;
 			SHIP_OUT <= ship;
