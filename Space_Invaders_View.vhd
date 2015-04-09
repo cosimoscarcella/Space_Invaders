@@ -17,6 +17,7 @@ entity Space_Invaders_View is
 		
 		FB_READY       : in  std_logic;
 		FB_CLEAR       : out std_logic;
+		FB_FLIP        : out std_logic;
 		FB_DRAW_RECT   : out std_logic;
 		FB_DRAW_LINE   : out std_logic;
 		FB_FILL_RECT   : out std_logic;
@@ -24,7 +25,9 @@ entity Space_Invaders_View is
 		FB_X0          : out xy_coord_type;
 		FB_Y0          : out xy_coord_type;
 		FB_X1          : out xy_coord_type;
-		FB_Y1          : out xy_coord_type
+		FB_Y1          : out xy_coord_type;
+		
+		LEDROSSI				: out  std_logic
 		
 	);
 end entity;
@@ -51,6 +54,9 @@ begin
 			FB_DRAW_RECT      <= '0';
 			FB_DRAW_LINE      <= '0';
 			FB_FILL_RECT      <= '0';
+			FB_FLIP           <= '0';
+			
+			LEDROSSI <= '0';
 
 		elsif (rising_edge(CLOCK)) then
 		
@@ -58,6 +64,7 @@ begin
 			FB_DRAW_RECT   <= '0';
 			FB_DRAW_LINE   <= '0';
 			FB_FILL_RECT   <= '0';
+			FB_FLIP        <= '0';
 	
 			case (state) is
 				when IDLE =>
@@ -79,23 +86,25 @@ begin
 							FB_COLOR     <= COLOR_BLACK;
 							FB_CLEAR     <= '1';
 							substate     <= DRAW_BOARD_OUTLINE;
+							
+							LEDROSSI <= '1';
 						
 						when DRAW_BOARD_OUTLINE => -- bordo schermata di gioco
-							FB_COLOR     <= COLOR_RED;
-							FB_X0        <= LEFT_MARGIN;
-							FB_Y0        <= TOP_MARGIN;
-							FB_X1        <= LEFT_MARGIN;-- + (BOARD_COLUMNS * BLOCK_SIZE);
-							FB_Y1        <= TOP_MARGIN;--  + (BOARD_ROWS * BLOCK_SIZE);						
-							FB_DRAW_RECT <= '1';
+--							FB_COLOR     <= COLOR_RED;
+--							FB_X0        <= LEFT_MARGIN;
+--							FB_Y0        <= TOP_MARGIN;
+--							FB_X1        <= LEFT_MARGIN;-- + (BOARD_COLUMNS * BLOCK_SIZE);
+--							FB_Y1        <= TOP_MARGIN;--  + (BOARD_ROWS * BLOCK_SIZE);						
+--							FB_DRAW_RECT <= '1';
 							substate     <= DRAW_SHIP;					
 							
 						when DRAW_SHIP =>							
-							FB_COLOR     <= COLOR_RED;
-							FB_X0        <= SHIP_IN.x - (SHIP_IN.dim_x/2);
-							FB_Y0        <= SHIP_IN.y - (SHIP_IN.dim_y/2);
-							FB_X1        <= SHIP_IN.x + (SHIP_IN.dim_x/2);
-							FB_Y1        <= SHIP_IN.y + (SHIP_IN.dim_y/2);
-							FB_FILL_RECT <= '1';
+--							FB_COLOR     <= COLOR_RED;
+--							FB_X0        <= SHIP_IN.x - (SHIP_IN.dim_x/2);
+--							FB_Y0        <= SHIP_IN.y - (SHIP_IN.dim_y/2);
+--							FB_X1        <= SHIP_IN.x + (SHIP_IN.dim_x/2);
+--							FB_Y1        <= SHIP_IN.y + (SHIP_IN.dim_y/2);
+--							FB_FILL_RECT <= '1';
 --							
 --					
 --							if (query_cell_r.col /= BOARD_COLUMNS-1) then
@@ -111,6 +120,7 @@ begin
 --							end if;
 
 						when FLIP_FRAMEBUFFER =>
+							FB_FLIP  <= '1';
 							state    <= IDLE;						
 							
 					end case;

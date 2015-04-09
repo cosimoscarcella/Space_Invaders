@@ -15,6 +15,7 @@ entity Space_Invaders_Datapath is
 			SHIP_RIGHT			: in  std_logic;						
 			ALIEN_LEFT_RIGHT	: in  std_logic;				
 			SHOOT					: in  std_logic;
+			CLEAR	: in  std_logic;	
 			SHIP_OUT				: out ship_type
         );
 

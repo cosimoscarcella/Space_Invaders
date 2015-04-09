@@ -11,6 +11,8 @@ entity Space_Invaders is
         (
                 CLOCK_50            : in  std_logic;
                 KEY                 : in  std_logic_vector(3 downto 0);
+					 LEDG						: out  std_logic_vector(7 downto 0); -- DA RIMUOVERE
+					 LEDR						: out  std_logic_vector(9 downto 0); -- DA RIMUOVERE
 					 
                 SW                  : in  std_logic_vector(9 downto 9);
                 VGA_R               : out std_logic_vector(3 downto 0);
@@ -37,11 +39,9 @@ architecture RTL of Space_Invaders is
         signal clock_vga          : std_logic;
 		  signal time_10ms          : std_logic;
 		  signal RESET_N            : std_logic;
-		  signal ship						: ship_type;
+		  signal ship					 : ship_type;
+		  signal reset_sync_reg     : std_logic;
 		
-		-- Controller Signals
-		signal ship_left		: std_logic;
-		signal ship_right		: std_logic;
 		--vga
 		signal fb_ready           : std_logic;
 		signal fb_clear           : std_logic;
@@ -57,9 +57,12 @@ architecture RTL of Space_Invaders is
 		signal redraw       : std_logic;
 		
 		-- Controller Signals
+		signal ship_left		: std_logic;
+		signal ship_right		: std_logic;
 		signal button_shot			: std_logic;
 		signal button_right			: std_logic;
 		signal button_left			: std_logic;
+		signal clear			: std_logic;
 		
 		
 		--ALIENI
@@ -68,6 +71,9 @@ architecture RTL of Space_Invaders is
 		--PROIETTILE
 
 		signal shoot			: std_logic;
+		
+		--View
+		signal ledrossi       : std_logic;
 				
 begin
 
@@ -79,13 +85,13 @@ begin
                 ); 
         
                                         
---        reset_sync : process(CLOCK_50)
---        begin
---                if (rising_edge(CLOCK_50)) then
---                        reset_sync_reg <= SW(9);
---                        RESET_N <= reset_sync_reg;
---                end if;
---        end process;
+        reset_sync : process(CLOCK_50)
+        begin
+                if (rising_edge(CLOCK_50)) then
+                        reset_sync_reg <= SW(9);
+                        RESET_N <= reset_sync_reg;
+                end if;
+        end process;
         
         
         vga : entity work.VGA_Framebuffer
@@ -130,7 +136,8 @@ begin
 								SHOOT				=>	shoot,
 								BUTTON_LEFT			=>	not(KEY(1)),
 								BUTTON_RIGHT			=>	not(KEY(0)),
-								BUTTON_SHOT			=>	not(KEY(2))
+								BUTTON_SHOT			=>	not(KEY(2)),
+								CLEAR           => clear
                 );
                 
                 
@@ -143,8 +150,9 @@ begin
 					SHIP_RIGHT			=>	ship_right,				
 					ALIEN_LEFT_RIGHT	=>	alien_left_right,					
 					SHOOT				=>	shoot,
-					SHIP_OUT			=> ship
-                );
+					SHIP_OUT			=> ship,
+					CLEAR           => clear
+				);
                         
         view : entity work.Space_Invaders_View
                 port map (
@@ -157,23 +165,35 @@ begin
 								FB_DRAW_RECT   => fb_draw_rect,
 								FB_DRAW_LINE   => fb_draw_line,
 								FB_FILL_RECT   => fb_fill_rect,
+								FB_FLIP         => fb_flip,
 								FB_COLOR       => fb_color,
 								FB_X0          => fb_x0,
 								FB_Y0          => fb_y0,
 								FB_X1          => fb_x1,
 								FB_Y1          => fb_y1,
 								
-								SHIP_IN			=> ship
+								SHIP_IN			=> ship,
+								
+								LEDROSSI			=> ledrossi
+								
+								
                 );                      
         
 
 	timegen : process(CLOCK, RESET_N)
 	variable counter : integer range 0 to (500000-1);
-	begin
-		if (RESET_N = '0') then
+	begin	
+		
+		if (RESET_N = '0') then		
+		LEDG <= "00000000";	
+		LEDR <= "0000000000";
 			counter := 0;
 			time_10ms <= '0';
 		elsif (rising_edge(clock)) then
+		LEDG <= "00111111";
+		if (LEDROSSI = '1') then
+			LEDR <= "0100000000";
+		 end if;
 			if(counter = counter'high) then
 				counter := 0;
 				time_10ms <= '1';

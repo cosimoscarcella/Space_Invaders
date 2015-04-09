@@ -19,6 +19,7 @@ entity Space_Invaders_Controller is
 		SHIP_RIGHT			: out  std_logic;						
 		ALIEN_LEFT_RIGHT	: out  std_logic;				
 		SHOOT					: out  std_logic;
+		CLEAR					: out  std_logic;
 		
 		-- Connections with View
 		REDRAW          : out std_logic
@@ -30,6 +31,8 @@ end entity;
 architecture RTL of Space_Invaders_Controller is
 
 begin   
+
+	CLEAR <= '0';
 
 --MOVIMENTO TEMPORIZZATO
 				   
@@ -85,7 +88,7 @@ begin
 			SHOOT       <= '0';
 			SHIP_LEFT       <= '0';
 			SHIP_RIGHT      <= '0';	
-			REDRAW          <= '0';	
+			REDRAW          <= '1';	
 		
 			if (BUTTON_LEFT = '1') then
 					SHIP_LEFT <= '1';
