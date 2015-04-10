@@ -22,7 +22,8 @@ entity Space_Invaders_Controller is
 		CLEAR					: out  std_logic;
 		
 		-- Connections with View
-		REDRAW          : out std_logic
+		REDRAW          : out std_logic;		
+		LEDVERDI				: out  std_logic
 	);
 
 end entity;
@@ -30,8 +31,13 @@ end entity;
 
 architecture RTL of Space_Invaders_Controller is
 
+	constant MOVEMENT_SPEED       : integer := 20;
+	signal   time_to_next_move    : integer range 0 to MOVEMENT_SPEED-1;
+	signal   move_time            : std_logic;	
+
 begin   
 
+	-- Comando al Datapath
 	CLEAR <= '0';
 
 --MOVIMENTO TEMPORIZZATO
@@ -57,53 +63,63 @@ begin
 --						
 
 
---	TimedMove : process(CLOCK, RESET_N)
---	begin
---		if (RESET_N = '0') then
---			time_to_next_move  <= 0;
---			move_time          <= '0';
---		elsif rising_edge(CLOCK) then
---			move_time <= '0';
---			
---			if (TIME_10MS = '1') then
---				if (time_to_next_move = 0) then
---					time_to_next_move  <= MOVEMENT_SPEED - 1;
---					move_time          <= '1';
---				else
---					time_to_next_move  <= time_to_next_move - 1;
---				end if;
---			end if;
---		end if;
---	end process;
+	TimedMove : process(CLOCK, RESET_N)
+	begin
+		if (RESET_N = '0') then
+			time_to_next_move  <= 0;
+			move_time          <= '0';
+		elsif rising_edge(CLOCK) then
+			move_time <= '0';
+			
+			if (TIME_10MS = '1') then
+				if (time_to_next_move = 0) then
+					time_to_next_move  <= MOVEMENT_SPEED - 1;
+					move_time          <= '1';
+				else
+					time_to_next_move  <= time_to_next_move - 1;
+				end if;
+			end if;
+		end if;
+	end process;
 	
 	
 	Controller_RTL : process (CLOCK, RESET_N)
 	begin
 		if (RESET_N = '0') then
-			SHOOT       <= '0';
+			SHOOT      		 <= '0';
 			SHIP_LEFT       <= '0';
 			SHIP_RIGHT      <= '0';	
 			REDRAW          <= '0';			
 		elsif rising_edge(CLOCK) then
-			SHOOT       <= '0';
+			SHOOT       	 <= '0';
 			SHIP_LEFT       <= '0';
 			SHIP_RIGHT      <= '0';	
-			REDRAW          <= '1';	
-		
-			if (BUTTON_LEFT = '1') then
+			REDRAW          <= '0';	
+			
+			
+			if (move_time = '1') then
+			
+				if (BUTTON_LEFT = '1') then
 					SHIP_LEFT <= '1';
 					REDRAW  <= '1';
+					--LEDVERDI <= '1';
 					
-			elsif (BUTTON_RIGHT = '1') then
-					SHIP_RIGHT <= '1';
-					REDRAW <= '1';
+				elsif (BUTTON_RIGHT = '1') then
+						SHIP_RIGHT <= '1';
+						REDRAW <= '1';
+						--LEDVERDI <= '1';
+					
+				elsif (BUTTON_SHOT = '1') then
+						SHOOT <= '1';
+						REDRAW  <= '1';	
+						--LEDVERDI <= '1';		
+				end if;	
 				
-			elsif (BUTTON_SHOT = '1') then
-					SHOOT <= '1';
-					REDRAW  <= '1';			
 			end if;
+		
+			
 	
-	end if;
+		end if;
 	end process;
 		
 end architecture;

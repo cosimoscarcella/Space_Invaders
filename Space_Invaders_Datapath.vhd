@@ -24,63 +24,65 @@ end entity;
 architecture RTL of Space_Invaders_Datapath is
 
 -- Shared variables
-shared variable ship : ship_type;
 shared variable bullet_y : max_bullets;
 shared variable bullet_x : max_bullets;
 shared variable clock_tick : integer range 0 to MAX_TICK;
 
+signal ship : ship_type;
+
+
 begin
 
-bullet_move : process(CLOCK, RESET_N, SHOOT)
+--bullet_move : process(CLOCK, RESET_N, SHOOT)
+--begin
+--
+--	if (RESET_N = '1') then
+--		clock_tick := 0; 
+--		
+--	elsif (rising_edge(CLOCK)) then
+--		clock_tick := clock_tick + 1;
+--		
+--		if (clock_tick >= MAX_TICK) then
+--			clock_tick := 0;
+--		end if;
+--		
+--		if ((clock_tick mod BULLET_MOVE_TIME) = 0) then
+--			for I in 1 to MAX_B loop
+--			
+--				if (bullet_x(I) > 0) then
+--					bullet_y(I) := bullet_y(I) + 1;
+--				
+--					if (bullet_y(I) > MAX_Y) then --Da inserire condizione se colpisce alieno
+--						bullet_y(I) := 0;
+--						bullet_x(I) := 0;
+--					end if;
+--			
+--				end if;				
+--				
+--			end loop;
+--				
+--					
+--		end if;		
+--	
+--	end if;
+--
+--end process;
+
+ship_move : process(CLOCK, RESET_N)
 begin
 
 	if (RESET_N = '1') then
-		clock_tick := 0; 
-		
-	elsif (rising_edge(CLOCK)) then
-		clock_tick := clock_tick + 1;
-		
-		if (clock_tick >= MAX_TICK) then
-			clock_tick := 0;
-		end if;
-		
-		if ((clock_tick mod BULLET_MOVE_TIME) = 0) then
-			for I in 1 to MAX_B loop
-			
-				if (bullet_x(I) > 0) then
-					bullet_y(I) := bullet_y(I) + 1;
-				
-					if (bullet_y(I) > MAX_Y) then --Da inserire condizione se colpisce alieno
-						bullet_y(I) := 0;
-						bullet_x(I) := 0;
-					end if;
-			
-				end if;				
-				
-			end loop;
-				
-					
-		end if;		
-	
-	end if;
-
-end process;
-
-ship_move : process(CLOCK, RESET_N, SHIP_LEFT, SHIP_RIGHT)
-begin
-
-	if (RESET_N = '1') then
-		ship.x := 100; 
-		ship.y := 100; 
+		ship.x <= 0; 
+		ship.y <= 0; 
 		SHIP_OUT <= ship;
 		
-	elsif (rising_edge(CLOCK) and TIME_10MS = '1') then
+	elsif (rising_edge(CLOCK)) then
 		if (SHIP_LEFT = '1' and ship.x > 0) then
-			ship.x  := ship.x - 1 ;
+			ship.x  <= ship.x - 100 ;
 			SHIP_OUT <= ship;
 			
 		elsif (SHIP_RIGHT = '1' and ship.x < MAX_X) then
-			ship.x := ship.x + 1;
+			ship.x <= ship.x + 100;
 			SHIP_OUT <= ship;
 					
 		end if;		

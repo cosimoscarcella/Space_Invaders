@@ -19,6 +19,10 @@ package space_invaders_package is
 	type max_bullets is array (1 to MAX_B) of natural range 0 to (MAX_X-1);
 	
 	
+	constant  BOARD_COLUMNS    : positive   := 50;
+	constant  BOARD_ROWS       : positive   := 40;
+	
+	
 	-- Ship declarations
 	type ship_type is record
 		x      	: 	integer range 0 to (MAX_X-1);

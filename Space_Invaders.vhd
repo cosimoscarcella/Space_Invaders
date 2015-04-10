@@ -12,9 +12,9 @@ entity Space_Invaders is
                 CLOCK_50            : in  std_logic;
                 KEY                 : in  std_logic_vector(3 downto 0);
 					 LEDG						: out  std_logic_vector(7 downto 0); -- DA RIMUOVERE
-					 LEDR						: out  std_logic_vector(9 downto 0); -- DA RIMUOVERE
-					 
+					 LEDR						: out  std_logic_vector(9 downto 0); -- DA RIMUOVERE					 
                 SW                  : in  std_logic_vector(9 downto 9);
+					 
                 VGA_R               : out std_logic_vector(3 downto 0);
                 VGA_G               : out std_logic_vector(3 downto 0);
                 VGA_B               : out std_logic_vector(3 downto 0);
@@ -38,9 +38,9 @@ architecture RTL of Space_Invaders is
 		  signal datapath_reset     : std_logic;
         signal clock_vga          : std_logic;
 		  signal time_10ms          : std_logic;
-		  signal RESET_N            : std_logic;
-		  signal ship					 : ship_type;
+		  signal RESET_N            : std_logic;		  
 		  signal reset_sync_reg     : std_logic;
+		  signal ship					 : ship_type;
 		
 		--vga
 		signal fb_ready           : std_logic;
@@ -54,26 +54,26 @@ architecture RTL of Space_Invaders is
 		signal fb_x1              : xy_coord_type;
 		signal fb_y1              : xy_coord_type;
 		signal fb_color           : color_type;
-		signal redraw       : std_logic;
+		
 		
 		-- Controller Signals
-		signal ship_left		: std_logic;
-		signal ship_right		: std_logic;
+		signal ship_left				 : std_logic;
+		signal ship_right			 	 : std_logic;
 		signal button_shot			: std_logic;
 		signal button_right			: std_logic;
 		signal button_left			: std_logic;
-		signal clear			: std_logic;
+		signal clear					: std_logic;
+		signal redraw      			 : std_logic;
 		
 		
-		--ALIENI
-		signal alien_left_right	: std_logic;
+		-- Controller Signals
+		signal alien_left_right			: std_logic;
+		signal shoot						: std_logic;
 		
-		--PROIETTILE
-
-		signal shoot			: std_logic;
 		
 		--View
-		signal ledrossi       : std_logic;
+		signal ledrossi       : std_logic_vector(9 downto 0);
+		signal ledverdi       : std_logic;
 				
 begin
 
@@ -137,7 +137,9 @@ begin
 								BUTTON_LEFT			=>	not(KEY(1)),
 								BUTTON_RIGHT			=>	not(KEY(0)),
 								BUTTON_SHOT			=>	not(KEY(2)),
-								CLEAR           => clear
+								CLEAR           => clear,
+								REDRAW          => redraw,
+								LEDVERDI			=> ledverdi
                 );
                 
                 
@@ -189,17 +191,22 @@ begin
 		LEDR <= "0000000000";
 			counter := 0;
 			time_10ms <= '0';
-		elsif (rising_edge(clock)) then
-		LEDG <= "00111111";
-		if (LEDROSSI = '1') then
-			LEDR <= "0100000000";
-		 end if;
+		elsif (rising_edge(clock)) then		
+	
+				if (LEDVERDI = '1') then
+					LEDG <= "11111111";
+				end if;
+				LEDR <= LEDROSSI;	
+		 
 			if(counter = counter'high) then
 				counter := 0;
 				time_10ms <= '1';
+				
+				
+				
 			else
 				counter := counter+1;
-				time_10ms <= '0';			
+				time_10ms <= '0';
 			end if;
 		end if;
 	end process;
