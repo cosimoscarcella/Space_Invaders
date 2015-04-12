@@ -64,16 +64,18 @@ architecture RTL of Space_Invaders is
 		signal button_left			: std_logic;
 		signal clear					: std_logic;
 		signal redraw      			 : std_logic;
-		
-		
-		-- Controller Signals
 		signal alien_left_right			: std_logic;
 		signal shoot						: std_logic;
+		signal bullet_time			: std_logic;
 		
 		
 		--View
 		signal ledrossi       : std_logic_vector(9 downto 0);
 		signal ledverdi       : std_logic;
+		
+		
+		--Datapath
+		signal ledgreen       : std_logic;
 				
 begin
 
@@ -139,7 +141,8 @@ begin
 								BUTTON_SHOT			=>	not(KEY(2)),
 								CLEAR           => clear,
 								REDRAW          => redraw,
-								LEDVERDI			=> ledverdi
+								BULLET_TIME          => bullet_time
+								--LEDVERDI			=> ledverdi
                 );
                 
                 
@@ -153,7 +156,10 @@ begin
 					ALIEN_LEFT_RIGHT	=>	alien_left_right,					
 					SHOOT				=>	shoot,
 					SHIP_OUT			=> ship,
-					CLEAR           => clear
+					CLEAR           => clear,
+					BULLET_TIME          => bullet_time,
+					--LEDVERDIDAT			=> ledgreen
+					LEDVERDI			=> ledverdi
 				);
                         
         view : entity work.Space_Invaders_View

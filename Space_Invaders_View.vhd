@@ -36,16 +36,16 @@ end entity;
 architecture RTL of Space_Invaders_View is
 	constant LEFT_MARGIN    : integer := 4;
 	constant TOP_MARGIN     : integer := 4;
-	constant BLOCK_SIZE     : integer := 10;
+	
 	
 	type   state_type    is (IDLE, WAIT_FOR_READY, DRAWING);
-	type   substate_type is (CLEAR_SCENE, DRAW_BOARD_OUTLINE, DRAW_SHIP, FLIP_FRAMEBUFFER);
+	type   substate_type is (CLEAR_SCENE, DRAW_BOARD_OUTLINE, DRAW_SHIP, DRAW_BULLET, FLIP_FRAMEBUFFER);
 	signal state        : state_type;
 	signal substate     : substate_type;
 	
 	shared variable flipped : integer := 0;
 	shared variable led : std_logic_vector(9 downto 0) := "0000000000";
-	shared variable pos_ship     :  integer := 0;
+	shared variable i : integer := 0;
 
 begin
 	
@@ -62,9 +62,11 @@ begin
 			FB_DRAW_LINE      <= '0';
 			FB_FILL_RECT      <= '0';
 			FB_FLIP           <= '0';
+			i 						:=  0 ;
+			
 			
 			flipped := 0;
-			pos_ship := (LEFT_MARGIN * 2);
+		
 
 		elsif (rising_edge(CLOCK)) then
 		
@@ -85,11 +87,15 @@ begin
 						LEDROSSI <= led;
 						
 					else -- REDRAW = '0'
---						state    <= WAIT_FOR_READY;
---						substate <= CLEAR_SCENE;
 						state    <= IDLE;
-						led := "0100000000";
-						LEDROSSI <= led;
+--						if (SHIP_IN.x /= 0) then
+--								led := "1111111111";
+--								LEDROSSI <= led;							
+--						else
+								led := "0100000000";
+								LEDROSSI <= led;
+--						end if;
+						
 					end if;
 					
 					
@@ -127,26 +133,67 @@ begin
 							LEDROSSI <= led;	
 							
 						when DRAW_SHIP =>	
-							pos_ship := pos_ship + 10;
-						
-							FB_COLOR     <= COLOR_RED;
-							FB_X0        <= pos_ship;
-							FB_Y0        <= (BOARD_ROWS-1) * BLOCK_SIZE;
-							FB_X1        <= pos_ship + BLOCK_SIZE;
-							FB_Y1        <= BOARD_ROWS * BLOCK_SIZE;	
-							FB_FILL_RECT <= '1';
 							
-			
---							if (flipped = 0) then
-								substate  <= FLIP_FRAMEBUFFER;
---								flipped := 0;
---							end if;
+							FB_COLOR     <= COLOR_RED;
+							FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.x;
+							FB_Y0        <= (BOARD_ROWS-1) * BLOCK_SIZE;
+							FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.x + BLOCK_SIZE;
+							FB_Y1        <= BOARD_ROWS * BLOCK_SIZE;	
+							FB_FILL_RECT <= '1';	
+
+							substate  <= DRAW_BULLET;
 
 							led := "0000010000";
 							LEDROSSI <= led;	
+							
+						when DRAW_BULLET =>	
+						
+							--for i in 0 to MAX_B loop
+							
+--							if (i = 0) then
+--								FB_COLOR     <= COLOR_YELLOW;							
+--							elsif (i = 1) then
+--								FB_COLOR     <= COLOR_GREEN;	
+--							elsif (i = 2) then
+--								FB_COLOR     <= COLOR_BLUE;
+--							elsif (i = 3) then
+--								FB_COLOR     <= COLOR_CYAN;
+--							elsif (i = 4) then
+---							FB_COLOR     <= COLOR_MAGENTA;
+--							end if;
+							
+							if (i = 0) then
+								FB_COLOR     <= COLOR_BLACK;							
+							elsif (i = 1) then
+								FB_COLOR     <= COLOR_GREEN;	
+							elsif (i = 2) then
+								FB_COLOR     <= COLOR_BLUE;
+							elsif (i = 3) then
+								FB_COLOR     <= COLOR_CYAN;
+							elsif (i = 4) then
+								FB_COLOR     <= COLOR_MAGENTA;
+							end if;
+							
+							
+							if (SHIP_IN.bullets(i).shooted = '1') then
+								FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + (BLOCK_SIZE/3);
+								FB_Y0        <= SHIP_IN.bullets(i).y;
+								FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + 4;
+								FB_Y1        <= SHIP_IN.bullets(i).y + BLOCK_SIZE;	
+								FB_FILL_RECT <= '1';						
+							end if;
+							
+							i := i + 1;
+							led := "0000001000";
+							LEDROSSI <= led;	
+							
+							if (i >= MAX_B) then
+								i := 0;
+								substate <= FLIP_FRAMEBUFFER;
+							end if;
 
 						when FLIP_FRAMEBUFFER =>
-							led := "0000001000";
+							led := "0000000100";
 							LEDROSSI <= led;	
 							
 							FB_FLIP  <= '1';

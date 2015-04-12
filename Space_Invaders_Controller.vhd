@@ -20,10 +20,11 @@ entity Space_Invaders_Controller is
 		ALIEN_LEFT_RIGHT	: out  std_logic;				
 		SHOOT					: out  std_logic;
 		CLEAR					: out  std_logic;
+		BULLET_TIME			: out  std_logic;
 		
 		-- Connections with View
-		REDRAW          : out std_logic;		
-		LEDVERDI				: out  std_logic
+		REDRAW          : out std_logic		
+		--LEDVERDI				: out  std_logic
 	);
 
 end entity;
@@ -31,15 +32,22 @@ end entity;
 
 architecture RTL of Space_Invaders_Controller is
 
-	constant MOVEMENT_SPEED       : integer := 20;
-	signal   time_to_next_move    : integer range 0 to MOVEMENT_SPEED-1;
-	signal   move_time            : std_logic;	
+	constant SHIP_MOVEMENT_SPEED       : integer := 10;
+	signal   ship_time_to_next_move    : integer range 0 to SHIP_MOVEMENT_SPEED-1;
+	signal   ship_move_time            : std_logic;
+
+	constant BULLET_MOVEMENT_SPEED       : integer := 10;
+	signal   bullet_time_to_next_move    : integer range 0 to BULLET_MOVEMENT_SPEED-1;
+	signal   bullet_move_time            : std_logic;	
+	
+	shared variable shoot_counter       : integer := 0;
+	shared variable shoot_pressed       : std_logic := '0';
 
 begin   
 
 	-- Comando al Datapath
 	CLEAR <= '0';
-
+	
 --MOVIMENTO TEMPORIZZATO
 				   
 --	TimedFall : process(CLOCK, RESET_N)
@@ -62,21 +70,43 @@ begin
 --	end process;
 --						
 
+	bulletTimedMove : process(CLOCK, RESET_N)
+		begin
+			if (RESET_N = '0') then
+				bullet_time_to_next_move  <= 0;
+				bullet_move_time          <= '0';
+			elsif rising_edge(CLOCK) then
+				bullet_move_time <= '0';
+				
+				if (TIME_10MS = '1') then
+					if (bullet_time_to_next_move = 0) then
+						bullet_time_to_next_move  <= BULLET_MOVEMENT_SPEED - 1;
+						bullet_move_time          <= '1';
+					else
+						bullet_time_to_next_move  <= bullet_time_to_next_move - 1;
+					end if;
+				end if;
+				
+				BULLET_TIME  <= bullet_move_time;
+			end if;
+	end process;
 
-	TimedMove : process(CLOCK, RESET_N)
+
+
+	shipTimedMove : process(CLOCK, RESET_N)
 	begin
 		if (RESET_N = '0') then
-			time_to_next_move  <= 0;
-			move_time          <= '0';
+			ship_time_to_next_move  <= 0;
+			ship_move_time          <= '0';
 		elsif rising_edge(CLOCK) then
-			move_time <= '0';
+			ship_move_time <= '0';
 			
 			if (TIME_10MS = '1') then
-				if (time_to_next_move = 0) then
-					time_to_next_move  <= MOVEMENT_SPEED - 1;
-					move_time          <= '1';
+				if (ship_time_to_next_move = 0) then
+					ship_time_to_next_move  <= SHIP_MOVEMENT_SPEED - 1;
+					ship_move_time          <= '1';
 				else
-					time_to_next_move  <= time_to_next_move - 1;
+					ship_time_to_next_move  <= ship_time_to_next_move - 1;
 				end if;
 			end if;
 		end if;
@@ -97,7 +127,7 @@ begin
 			REDRAW          <= '0';	
 			
 			
-			if (move_time = '1') then
+			if (ship_move_time = '1') then
 			
 				if (BUTTON_LEFT = '1') then
 					SHIP_LEFT <= '1';
@@ -108,15 +138,32 @@ begin
 						SHIP_RIGHT <= '1';
 						REDRAW <= '1';
 						--LEDVERDI <= '1';
-					
-				elsif (BUTTON_SHOT = '1') then
-						SHOOT <= '1';
-						REDRAW  <= '1';	
-						--LEDVERDI <= '1';		
-				end if;	
-				
+				end if;
 			end if;
-		
+			
+			
+			if (BUTTON_SHOT = '1' and shoot_pressed = '0') then
+				SHOOT <= '1';
+				--REDRAW  <= '1';	
+				--LEDVERDI <= '1';
+				
+				shoot_pressed := '1';	
+			elsif (BUTTON_SHOT = '0') then
+				shoot_pressed := '0';
+			end if;
+			
+			if (TIME_10MS = '1' and shoot_pressed = '1') then
+				shoot_counter := shoot_counter + 1;
+			end if;
+			
+			if (shoot_counter = 50) then 
+				shoot_pressed := '0';
+				shoot_counter := 0;
+			end if;
+			
+			if (bullet_move_time = '1') then	
+				REDRAW  <= '1';
+			end if;		
 			
 	
 		end if;

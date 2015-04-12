@@ -15,8 +15,11 @@ entity Space_Invaders_Datapath is
 			SHIP_RIGHT			: in  std_logic;						
 			ALIEN_LEFT_RIGHT	: in  std_logic;				
 			SHOOT					: in  std_logic;
-			CLEAR	: in  std_logic;	
-			SHIP_OUT				: out ship_type
+			CLEAR					: in  std_logic;	
+			BULLET_TIME			: in  std_logic;
+			SHIP_OUT				: out ship_type;
+			--LEDVERDIDAT		: out  std_logic
+			LEDVERDI				: out  std_logic
         );
 
 end entity;
@@ -24,72 +27,91 @@ end entity;
 architecture RTL of Space_Invaders_Datapath is
 
 -- Shared variables
-shared variable bullet_y : max_bullets;
-shared variable bullet_x : max_bullets;
-shared variable clock_tick : integer range 0 to MAX_TICK;
-
-signal ship : ship_type;
+shared variable ship_pos     :  integer := 0;
+shared variable bullet_pos     : bullet;
+shared variable bullet_index : integer := 0;
+shared variable count : integer := 0;
 
 
 begin
 
---bullet_move : process(CLOCK, RESET_N, SHOOT)
---begin
---
---	if (RESET_N = '1') then
---		clock_tick := 0; 
---		
---	elsif (rising_edge(CLOCK)) then
---		clock_tick := clock_tick + 1;
---		
---		if (clock_tick >= MAX_TICK) then
---			clock_tick := 0;
---		end if;
---		
---		if ((clock_tick mod BULLET_MOVE_TIME) = 0) then
---			for I in 1 to MAX_B loop
---			
---				if (bullet_x(I) > 0) then
---					bullet_y(I) := bullet_y(I) + 1;
---				
---					if (bullet_y(I) > MAX_Y) then --Da inserire condizione se colpisce alieno
---						bullet_y(I) := 0;
---						bullet_x(I) := 0;
---					end if;
---			
---				end if;				
---				
---			end loop;
---				
---					
---		end if;		
---	
---	end if;
---
---end process;
 
 ship_move : process(CLOCK, RESET_N)
 begin
 
-	if (RESET_N = '1') then
-		ship.x <= 0; 
-		ship.y <= 0; 
-		SHIP_OUT <= ship;
+	if (RESET_N = '0') then
+		--LEDVERDI <=	'0';
 		
 	elsif (rising_edge(CLOCK)) then
-		if (SHIP_LEFT = '1' and ship.x > 0) then
-			ship.x  <= ship.x - 100 ;
-			SHIP_OUT <= ship;
+		
+		if (SHIP_LEFT = '1' and ship_pos > 0) then
+			ship_pos := ship_pos - BLOCK_SIZE;
+			SHIP_OUT.x <= ship_pos;
 			
-		elsif (SHIP_RIGHT = '1' and ship.x < MAX_X) then
-			ship.x <= ship.x + 100;
-			SHIP_OUT <= ship;
-					
-		end if;		
+			
+		elsif (SHIP_RIGHT = '1' and ship_pos < (BOARD_COLUMNS-2)*BLOCK_SIZE) then
+			ship_pos := ship_pos + BLOCK_SIZE;
+			SHIP_OUT.x <= ship_pos;
+		end if;
 	
 	end if;
-
 end process;
 
+
+	
+bullet_move : process(CLOCK, RESET_N)
+begin
+
+	if (RESET_N = '0') then
+		bullet_index := 0;
+		for i in 0 to MAX_B loop
+			
+			bullet_pos(i).x := 0;
+			bullet_pos(i).y := (BOARD_ROWS-1)*BLOCK_SIZE;			
+
+		end loop; 
+		
+	elsif (rising_edge(CLOCK)) then
+		
+		if (SHOOT = '1') then
+			if (bullet_index < MAX_B) then
+				bullet_pos(count).x := ship_pos;			
+				--SHIP_OUT.bullets(bullet_index).x <= bullet_pos(bullet_index).x;		
+				bullet_pos(count).shooted := '1';
+				bullet_index := bullet_index + 1;
+				count := count + 1;
+			end if;
+		end if;
+	
+		if(BULLET_TIME = '1') then
+			for i in 0 to MAX_B loop
+				
+				--if (i < bullet_index and bullet_pos(i).y > 0) then
+				if (bullet_pos(i).shooted = '1' and bullet_pos(i).y > 0) then
+					bullet_pos(i).y := bullet_pos(i).y - BLOCK_SIZE;
+				end if;	
+					--SHIP_OUT.bullets(i).y <= bullet_pos(i).y;	
+				if (bullet_pos(i).y <= 0) then --DA METTERE AND SE COLPISCE ALIENO
+					--bullet_index := bullet_index - 1;
+					bullet_pos(i).y := (BOARD_ROWS-1)*BLOCK_SIZE;
+					bullet_pos(i).shooted := '0';
+					bullet_index := bullet_index - 1;
+					
+					for j in 0 to MAX_B loop
+						if (bullet_pos(j).shooted = '0') then
+							count := j;
+							exit;
+						end if;
+					end loop;
+					
+				end if;	
+				
+			end loop;
+			
+			SHIP_OUT.bullets <= bullet_pos;
+		end if;	
+	
+	end if;		
+end process;
 
 end architecture;

@@ -1,12 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.space_invaders_package.all;
 
 entity VGA_RAMDAC is
 	generic
 	(
-		FB_WIDTH    : natural := 512;
-		FB_HEIGHT   : natural := 480;
+		FB_WIDTH    : natural := MAX_X;
+		FB_HEIGHT   : natural := MAX_Y;
 		FB_DEPTH    : natural := 12
 	);
 	

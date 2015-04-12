@@ -2,14 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.vga_package.all;
+use work.space_invaders_package.all;
 
 -- TODO aggiungere bound sulle coordinate
 
 entity VGA_Framebuffer is
 	generic
 	(
-		SCREEN_WIDTH        : positive := 512;
-		SCREEN_HEIGHT       : positive := 480;
+		SCREEN_WIDTH        : positive := MAX_X;
+		SCREEN_HEIGHT       : positive := MAX_Y;
 		COLOR_DEPTH         : positive := 12
 	);
 	port
