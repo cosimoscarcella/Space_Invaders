@@ -14,6 +14,8 @@ entity Space_Invaders_View is
 		REDRAW         : in  std_logic;
 		
 		SHIP_IN			: in ship_type;
+		ALIEN_IN			: in alien_group;
+		ALIEN_STATE		: in alien_status;
 		
 		FB_READY       : in  std_logic;
 		FB_CLEAR       : out std_logic;
@@ -39,13 +41,15 @@ architecture RTL of Space_Invaders_View is
 	
 	
 	type   state_type    is (IDLE, WAIT_FOR_READY, DRAWING);
-	type   substate_type is (CLEAR_SCENE, DRAW_BOARD_OUTLINE, DRAW_SHIP, DRAW_BULLET, FLIP_FRAMEBUFFER);
+	type   substate_type is (CLEAR_SCENE, DRAW_BOARD_OUTLINE, DRAW_SHIP, DRAW_BULLET, DRAW_ALIENS, FLIP_FRAMEBUFFER);
 	signal state        : state_type;
 	signal substate     : substate_type;
 	
 	shared variable flipped : integer := 0;
 	shared variable led : std_logic_vector(9 downto 0) := "0000000000";
 	shared variable i : integer := 0;
+	shared variable j : integer := 0;
+	shared variable k : integer := 0;
 
 begin
 	
@@ -111,7 +115,7 @@ begin
 				
 					case (substate) is
 						when CLEAR_SCENE =>
-							FB_COLOR     <= COLOR_WHITE;
+							FB_COLOR     <= COLOR_BLACK;
 							FB_CLEAR     <= '1';
 							substate     <= DRAW_BOARD_OUTLINE;
 							
@@ -163,7 +167,7 @@ begin
 --							end if;
 							
 							if (i = 0) then
-								FB_COLOR     <= COLOR_BLACK;							
+								FB_COLOR     <= COLOR_WHITE;							
 							elsif (i = 1) then
 								FB_COLOR     <= COLOR_GREEN;	
 							elsif (i = 2) then
@@ -175,7 +179,7 @@ begin
 							end if;
 							
 							
-							if (SHIP_IN.bullets(i).shooted = '1') then
+							if (SHIP_IN.bullets(i).shooted = '1' and SHIP_IN.bullets(i).hit = '0') then
 								FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + (BLOCK_SIZE/3);
 								FB_Y0        <= SHIP_IN.bullets(i).y;
 								FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + 4;
@@ -189,9 +193,33 @@ begin
 							
 							if (i >= MAX_B) then
 								i := 0;
-								substate <= FLIP_FRAMEBUFFER;
+								substate <= DRAW_ALIENS;
+							end if;
+							
+						when DRAW_ALIENS =>
+						 
+							if(ALIEN_STATE(k)(j).alive = '1') then
+								FB_COLOR     <= COLOR_CYAN;
+								FB_X0        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x;
+								FB_Y0        <=  ALIEN_IN(k)(j).y;
+								FB_X1        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x + BLOCK_SIZE;
+								FB_Y1        <=  ALIEN_IN(k)(j).y + BLOCK_SIZE;	
+								FB_FILL_RECT <= '1';	
+							end if;
+							
+							j := j + 1;
+							if (j > MAX_A) then
+								j := 0;
+								k := k + 1;
+								if (k > MAX_A_ROWS) then
+									k := 0;
+									substate <= FLIP_FRAMEBUFFER;
+								end if;
 							end if;
 
+							led := "0000010000";
+							LEDROSSI <= led;	
+						
 						when FLIP_FRAMEBUFFER =>
 							led := "0000000100";
 							LEDROSSI <= led;	

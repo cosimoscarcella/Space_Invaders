@@ -11,6 +11,11 @@ entity Space_Invaders is
         (
                 CLOCK_50            : in  std_logic;
                 KEY                 : in  std_logic_vector(3 downto 0);
+					 
+					 HEX0						: out  std_logic_vector(6 downto 0);
+					 HEX1						: out  std_logic_vector(6 downto 0);
+					 HEX2						: out  std_logic_vector(6 downto 0);
+					 HEX3						: out  std_logic_vector(6 downto 0);
 					 LEDG						: out  std_logic_vector(7 downto 0); -- DA RIMUOVERE
 					 LEDR						: out  std_logic_vector(9 downto 0); -- DA RIMUOVERE					 
                 SW                  : in  std_logic_vector(9 downto 9);
@@ -41,6 +46,7 @@ architecture RTL of Space_Invaders is
 		  signal RESET_N            : std_logic;		  
 		  signal reset_sync_reg     : std_logic;
 		  signal ship					 : ship_type;
+		  signal alien_state			 : alien_status;
 		
 		--vga
 		signal fb_ready           : std_logic;
@@ -67,6 +73,8 @@ architecture RTL of Space_Invaders is
 		signal alien_left_right			: std_logic;
 		signal shoot						: std_logic;
 		signal bullet_time			: std_logic;
+		signal alien_time			: std_logic;
+		signal alien_speed		: std_logic;
 		
 		
 		--View
@@ -75,7 +83,9 @@ architecture RTL of Space_Invaders is
 		
 		
 		--Datapath
+		signal alien 			 : alien_group;
 		signal ledgreen       : std_logic;
+		signal score_out		 : integer;
 				
 begin
 
@@ -141,7 +151,9 @@ begin
 								BUTTON_SHOT			=>	not(KEY(2)),
 								CLEAR           => clear,
 								REDRAW          => redraw,
-								BULLET_TIME          => bullet_time
+								BULLET_TIME          => bullet_time,
+								ALIEN_SPEED_IN	=> alien_speed,
+								ALIEN_TIME          => alien_time
 								--LEDVERDI			=> ledverdi
                 );
                 
@@ -156,8 +168,13 @@ begin
 					ALIEN_LEFT_RIGHT	=>	alien_left_right,					
 					SHOOT				=>	shoot,
 					SHIP_OUT			=> ship,
+					ALIEN_OUT			=> alien,
 					CLEAR           => clear,
 					BULLET_TIME          => bullet_time,
+					ALIEN_TIME          => alien_time,
+					ALIEN_STATE			=> alien_state,
+					ALIEN_SPEED_OUT	=> alien_speed,
+					SCORE_OUT					=> score_out,
 					--LEDVERDIDAT			=> ledgreen
 					LEDVERDI			=> ledverdi
 				);
@@ -179,8 +196,9 @@ begin
 								FB_Y0          => fb_y0,
 								FB_X1          => fb_x1,
 								FB_Y1          => fb_y1,
-								
+								ALIEN_STATE			=> alien_state,
 								SHIP_IN			=> ship,
+								ALIEN_IN			=> alien,
 								
 								LEDROSSI			=> ledrossi
 								
@@ -198,7 +216,7 @@ begin
 			counter := 0;
 			time_10ms <= '0';
 		elsif (rising_edge(clock)) then		
-	
+				
 				if (LEDVERDI = '1') then
 					LEDG <= "11111111";
 				end if;
@@ -207,6 +225,7 @@ begin
 			if(counter = counter'high) then
 				counter := 0;
 				time_10ms <= '1';
+				--HEX0 <= std_logic_vector(score_out);
 				
 				
 				

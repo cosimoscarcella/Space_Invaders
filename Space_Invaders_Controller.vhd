@@ -13,7 +13,8 @@ entity Space_Invaders_Controller is
 		BUTTON_LEFT     : in  std_logic;
 		BUTTON_RIGHT    : in  std_logic;
 		BUTTON_SHOT     : in  std_logic;
-	
+		ALIEN_SPEED_IN	 : in  std_logic;
+
 		-- Connections with Tetris_Datapath
 		SHIP_LEFT			: out  std_logic;			
 		SHIP_RIGHT			: out  std_logic;						
@@ -21,6 +22,7 @@ entity Space_Invaders_Controller is
 		SHOOT					: out  std_logic;
 		CLEAR					: out  std_logic;
 		BULLET_TIME			: out  std_logic;
+		ALIEN_TIME			: out  std_logic;
 		
 		-- Connections with View
 		REDRAW          : out std_logic		
@@ -39,6 +41,12 @@ architecture RTL of Space_Invaders_Controller is
 	constant BULLET_MOVEMENT_SPEED       : integer := 10;
 	signal   bullet_time_to_next_move    : integer range 0 to BULLET_MOVEMENT_SPEED-1;
 	signal   bullet_move_time            : std_logic;	
+	
+	shared variable ALIEN_MOVEMENT_SPEED       : integer := 30;
+	signal   alien_time_to_next_move    : integer;
+	signal   alien_move_time            : std_logic;
+
+	
 	
 	shared variable shoot_counter       : integer := 0;
 	shared variable shoot_pressed       : std_logic := '0';
@@ -110,6 +118,30 @@ begin
 				end if;
 			end if;
 		end if;
+	end process;
+	
+	alienTimedMove : process(CLOCK, RESET_N)
+		begin
+			if (RESET_N = '0') then
+				alien_time_to_next_move  <= 0;
+				alien_move_time          <= '0';
+			elsif rising_edge(CLOCK) then
+				if (ALIEN_SPEED_IN = '1' and ALIEN_MOVEMENT_SPEED >= 15) then
+					ALIEN_MOVEMENT_SPEED := ALIEN_MOVEMENT_SPEED - 3;
+				end if;
+				alien_move_time <= '0';
+				
+				if (TIME_10MS = '1') then
+					if (alien_time_to_next_move = 0) then
+						alien_time_to_next_move  <= ALIEN_MOVEMENT_SPEED - 1;
+						alien_move_time          <= '1';
+					else
+						alien_time_to_next_move  <= alien_time_to_next_move - 1;
+					end if;
+				end if;
+				
+				ALIEN_TIME  <= alien_move_time;
+			end if;
 	end process;
 	
 	
