@@ -21,10 +21,10 @@ entity Space_Invaders_Datapath is
 			SHIP_OUT				: out ship_type;
 			ALIEN_OUT			: out alien_group;
 			ALIEN_STATE			: out alien_status;
-			SCORE_OUT			: out integer;
+--			SCORE_OUT			: out unsigned;
 			--LEDVERDIDAT		: out  std_logic
-			LEDVERDI				: out std_logic;
-			ALIEN_SPEED_OUT	: out std_logic
+			LEDVERDI				: out  std_logic;
+			ALIEN_SPEED_OUT	: out  std_logic
         );
 
 end entity;
@@ -45,6 +45,9 @@ shared variable alien_hit		: std_logic := '0';
 shared variable alien_alive	: alien_status;
 constant score_len				: integer := 9999;
 shared variable score 			: integer range 0 to score_len := 0;
+shared variable k					: integer := 0;
+
+shared variable row_number		: integer := MAX_A_ROWS;
 
 begin
 
@@ -113,8 +116,7 @@ begin
 							alien_alive(k)(j).alive := '0';
 							bullet_pos(i).hit := '1';
 							score := score + 1;
---							SCORE_OUT <= std_logic_vector(to_bcd(to_unsigned(score, score_len)));
-							SCORE_OUT <= score;
+--							SCORE_OUT <= to_bcd(to_unsigned(score, score_len));
 							exit;
 						end if;
 					end loop;
@@ -150,10 +152,10 @@ begin
 	if (RESET_N = '0') then
 		LEDVERDI <=	'0';
 		alien_posx := 0;
-		alien_posy := BLOCK_SIZE * 2;
+		alien_posy := BLOCK_SIZE;
 		for i in 0 to MAX_A_ROWS loop
 			for j in 0 to MAX_A loop
-				alien_obj(i)(j).y := 3 * BlOCK_SIZE * i + BLOCK_SIZE;
+				alien_obj(i)(j).y := BlOCK_SIZE * i + BLOCK_SIZE;
 			end loop;
 		end loop;
 		
@@ -174,33 +176,25 @@ begin
 				alien_posx := alien_posx - BLOCK_SIZE;
 			end if;
 			if (alien_down = 6) then
-				alien_posy := alien_posy + 2 * BLOCK_SIZE;
+				alien_posy := alien_posy + BLOCK_SIZE;
 				alien_down := 0;
 				ALIEN_SPEED_OUT <= '1';
 			end if;
+			
 			for i in 0 to MAX_A_ROWS loop
 				for j in 0 to MAX_A loop
-					alien_obj(i)(j).x := alien_posx + 4 * BlOCK_SIZE * j;
-					alien_obj(i)(j).y := alien_posy + 3 * BlOCK_SIZE * i + BLOCK_SIZE;
+					alien_obj(i)(j).x := alien_posx + 2 * BlOCK_SIZE * j;
+					alien_obj(i)(j).y := alien_posy + 1 * BlOCK_SIZE * i + BLOCK_SIZE;
 				end loop;
 			end loop;
-			if (alien_obj(MAX_A_ROWS)(0).y >= BOARD_ROWS * BLOCK_SIZE) then	
+			
+			if (alien_obj(row_number)(0).y >= (BOARD_ROWS - 1) * BLOCK_SIZE ) then	
 				LEDVERDI <=	'1';
 				alien_posx := 0;
-				alien_posy := BLOCK_SIZE * 2;
+				alien_posy := BLOCK_SIZE * 1;
 			end if;
 			ALIEN_OUT <= alien_obj;
 		end if;
-		
---		if (SHIP_LEFT = '1' and ship_pos > 0) then
---			ship_pos := ship_pos - BLOCK_SIZE;
---			SHIP_OUT.x <= ship_pos;
---			
---			
---		elsif (SHIP_RIGHT = '1' and ship_pos < (BOARD_COLUMNS-2)*BLOCK_SIZE) then
---			ship_pos := ship_pos + BLOCK_SIZE;
---			SHIP_OUT.x <= ship_pos;
---		end if;
 	
 	end if;
 end process;

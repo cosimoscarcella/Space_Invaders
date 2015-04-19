@@ -11,11 +11,10 @@ entity Space_Invaders is
         (
                 CLOCK_50            : in  std_logic;
                 KEY                 : in  std_logic_vector(3 downto 0);
-					 
-					 HEX0						: out  std_logic_vector(6 downto 0);
-					 HEX1						: out  std_logic_vector(6 downto 0);
-					 HEX2						: out  std_logic_vector(6 downto 0);
-					 HEX3						: out  std_logic_vector(6 downto 0);
+--					 HEX0						: in  std_logic_vector(6 downto 0);
+--					 HEX1						: in  std_logic_vector(6 downto 0);
+--					 HEX2						: in  std_logic_vector(6 downto 0);
+--					 HEX3						: in  std_logic_vector(6 downto 0);
 					 LEDG						: out  std_logic_vector(7 downto 0); -- DA RIMUOVERE
 					 LEDR						: out  std_logic_vector(9 downto 0); -- DA RIMUOVERE					 
                 SW                  : in  std_logic_vector(9 downto 9);
@@ -85,7 +84,7 @@ architecture RTL of Space_Invaders is
 		--Datapath
 		signal alien 			 : alien_group;
 		signal ledgreen       : std_logic;
-		signal score_out		 : integer;
+--		signal hex_0			 : unsigned;
 				
 begin
 
@@ -174,7 +173,7 @@ begin
 					ALIEN_TIME          => alien_time,
 					ALIEN_STATE			=> alien_state,
 					ALIEN_SPEED_OUT	=> alien_speed,
-					SCORE_OUT					=> score_out,
+--					SCORE_OUT					=> hex_0,
 					--LEDVERDIDAT			=> ledgreen
 					LEDVERDI			=> ledverdi
 				);
@@ -216,7 +215,7 @@ begin
 			counter := 0;
 			time_10ms <= '0';
 		elsif (rising_edge(clock)) then		
-				
+--				HEX0 <= hex_0;
 				if (LEDVERDI = '1') then
 					LEDG <= "11111111";
 				end if;
@@ -225,7 +224,6 @@ begin
 			if(counter = counter'high) then
 				counter := 0;
 				time_10ms <= '1';
-				--HEX0 <= std_logic_vector(score_out);
 				
 				
 				

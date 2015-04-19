@@ -3,6 +3,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 use work.space_invaders_package.all;
 use work.vga_package.all;
+use work.sprites_package.all;
 
 
 entity Space_Invaders_View is
@@ -50,7 +51,19 @@ architecture RTL of Space_Invaders_View is
 	shared variable i : integer := 0;
 	shared variable j : integer := 0;
 	shared variable k : integer := 0;
-
+	shared variable sprite_index : integer := 0;
+	
+	shared variable pixel_x : integer := 0;
+	shared variable pixel_y : integer := 0;
+	shared variable pixel_x_start_pos : integer := 0;
+	shared variable pixel_y_start_pos : integer := 0;
+	
+	shared variable init_ship : std_logic := '0';
+	shared variable init_alien : std_logic := '0';
+	
+	shared variable blocco_creato : std_logic := '0';
+	
+	
 begin
 	
 	
@@ -128,9 +141,10 @@ begin
 							FB_COLOR     <= COLOR_BLUE;
 							FB_X0        <= LEFT_MARGIN;
 							FB_Y0        <= TOP_MARGIN;
-							FB_X1        <= LEFT_MARGIN + (BOARD_COLUMNS * BLOCK_SIZE);
-							FB_Y1        <= TOP_MARGIN + (BOARD_ROWS * BLOCK_SIZE);						
+							FB_X1        <= LEFT_MARGIN + ((BOARD_COLUMNS - 1) * BLOCK_SIZE) + LEFT_MARGIN * 2;
+							FB_Y1        <= TOP_MARGIN + (BOARD_ROWS * BLOCK_SIZE) ;						
 							FB_DRAW_RECT <= '1';
+							
 							substate     <= DRAW_SHIP;		
 							
 							led := "0000100000";
@@ -138,34 +152,41 @@ begin
 							
 						when DRAW_SHIP =>	
 							
-							FB_COLOR     <= COLOR_RED;
-							FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.x;
-							FB_Y0        <= (BOARD_ROWS-1) * BLOCK_SIZE;
-							FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.x + BLOCK_SIZE;
-							FB_Y1        <= BOARD_ROWS * BLOCK_SIZE;	
-							FB_FILL_RECT <= '1';	
-
-							substate  <= DRAW_BULLET;
-
+							if (init_ship = '0') then 
+								pixel_x_start_pos := (LEFT_MARGIN * 2) + SHIP_IN.x;
+								pixel_y_start_pos := (BOARD_ROWS-1) * BLOCK_SIZE;
+								pixel_x := pixel_x_start_pos;
+								pixel_y := pixel_y_start_pos;
+							end if;
+							
+							if (((pixel_x - pixel_x_start_pos) /= BLOCK_SIZE) and ((pixel_y - pixel_y_start_pos) /= BLOCK_SIZE)) then
+								FB_COLOR <= ship_sprite(sprite_index);
+								--FB_COLOR <= COLOR_BLUE;
+								FB_X0        <= pixel_x;
+								FB_Y0        <= pixel_y;
+								FB_X1        <= pixel_x+1;
+								FB_Y1        <= pixel_y+1;
+								FB_FILL_RECT <= '1';
+								sprite_index := sprite_index + 1;
+								
+								pixel_x := pixel_x + 1;
+								if ((pixel_x - pixel_x_start_pos) = BLOCK_SIZE) then 
+									pixel_x := pixel_x_start_pos;
+									pixel_y := pixel_y + 1;
+								end if;
+								
+								init_ship := '1';
+							else
+								init_ship := '0';
+								sprite_index := 0;
+								substate  <= DRAW_BULLET;
+							end if;
+							
 							led := "0000010000";
-							LEDROSSI <= led;	
+							LEDROSSI <= led;
 							
 						when DRAW_BULLET =>	
-						
-							--for i in 0 to MAX_B loop
-							
---							if (i = 0) then
---								FB_COLOR     <= COLOR_YELLOW;							
---							elsif (i = 1) then
---								FB_COLOR     <= COLOR_GREEN;	
---							elsif (i = 2) then
---								FB_COLOR     <= COLOR_BLUE;
---							elsif (i = 3) then
---								FB_COLOR     <= COLOR_CYAN;
---							elsif (i = 4) then
----							FB_COLOR     <= COLOR_MAGENTA;
---							end if;
-							
+
 							if (i = 0) then
 								FB_COLOR     <= COLOR_WHITE;							
 							elsif (i = 1) then
@@ -180,10 +201,11 @@ begin
 							
 							
 							if (SHIP_IN.bullets(i).shooted = '1' and SHIP_IN.bullets(i).hit = '0') then
-								FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + (BLOCK_SIZE/3);
+--								FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + (BLOCK_SIZE/3);
+								FB_X0        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + 11;
 								FB_Y0        <= SHIP_IN.bullets(i).y;
-								FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + 4;
-								FB_Y1        <= SHIP_IN.bullets(i).y + BLOCK_SIZE;	
+								FB_X1        <= (LEFT_MARGIN * 2) + SHIP_IN.bullets(i).x + 13;
+								FB_Y1        <= SHIP_IN.bullets(i).y + BLOCK_SIZE / 2;	
 								FB_FILL_RECT <= '1';						
 							end if;
 							
@@ -199,22 +221,61 @@ begin
 						when DRAW_ALIENS =>
 						 
 							if(ALIEN_STATE(k)(j).alive = '1') then
-								FB_COLOR     <= COLOR_CYAN;
-								FB_X0        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x;
-								FB_Y0        <=  ALIEN_IN(k)(j).y;
-								FB_X1        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x + BLOCK_SIZE;
-								FB_Y1        <=  ALIEN_IN(k)(j).y + BLOCK_SIZE;	
-								FB_FILL_RECT <= '1';	
+							
+							
+								if (init_alien = '0') then 
+									pixel_x_start_pos := (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x;
+									pixel_y_start_pos := ALIEN_IN(k)(j).y;
+									pixel_x := pixel_x_start_pos;
+									pixel_y := pixel_y_start_pos;
+									init_alien := '1';
+								end if;
+								
+								if (((pixel_x - pixel_x_start_pos) /= BLOCK_SIZE) and ((pixel_y - pixel_y_start_pos) /= BLOCK_SIZE)) then
+									FB_COLOR <= alien_sprite(sprite_index);
+--									FB_COLOR <= COLOR_WHITE;
+									FB_X0        <= pixel_x;
+									FB_Y0        <= pixel_y;
+									FB_X1        <= pixel_x+1;
+									FB_Y1        <= pixel_y+1;
+									FB_FILL_RECT <= '1';
+									sprite_index := sprite_index + 1;
+									
+									pixel_x := pixel_x + 1;
+									if ((pixel_x - pixel_x_start_pos) = BLOCK_SIZE) then 
+										pixel_x := pixel_x_start_pos;
+										pixel_y := pixel_y + 1;
+									end if;
+									
+									
+								else -- quando completo di disegnare tutto il Blocco
+									blocco_creato := '1';
+									init_alien := '0';
+									sprite_index := 0;
+									
+								end if;
+							elsif(ALIEN_STATE(k)(j).alive = '0') then
+--								FB_COLOR     <= COLOR_GREEN;
+--								FB_X0        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x;
+--								FB_Y0        <=  ALIEN_IN(k)(j).y;
+--								FB_X1        <= (LEFT_MARGIN * 2) + ALIEN_IN(k)(j).x + BLOCK_SIZE;
+--								FB_Y1        <=  ALIEN_IN(k)(j).y + BLOCK_SIZE;	
+--								FB_FILL_RECT <= '1';
+								blocco_creato := '1';
+								
 							end if;
 							
-							j := j + 1;
-							if (j > MAX_A) then
-								j := 0;
-								k := k + 1;
-								if (k > MAX_A_ROWS) then
-									k := 0;
-									substate <= FLIP_FRAMEBUFFER;
+							if (blocco_creato = '1') then
+								j := j + 1;
+								if (j > MAX_A) then
+									j := 0;
+									k := k + 1;
+									if (k > MAX_A_ROWS) then
+										k := 0;
+										substate <= FLIP_FRAMEBUFFER;
+									end if;
 								end if;
+								blocco_creato := '0';
 							end if;
 
 							led := "0000010000";
