@@ -125,6 +125,7 @@ begin
 			if (RESET_N = '0') then
 				alien_time_to_next_move  <= 0;
 				alien_move_time          <= '0';
+				ALIEN_MOVEMENT_SPEED 	 := 30;
 			elsif rising_edge(CLOCK) then
 				if (ALIEN_SPEED_IN = '1' and ALIEN_MOVEMENT_SPEED >= 15) then
 					ALIEN_MOVEMENT_SPEED := ALIEN_MOVEMENT_SPEED - 3;

@@ -48,6 +48,10 @@ shared variable score 			: integer range 0 to score_len := 0;
 shared variable k					: integer := 0;
 
 shared variable row_number		: integer := MAX_A_ROWS;
+type row_dead is array (0 to MAX_A_ROWS) of integer;
+shared variable row_all_dead 			: row_dead;
+shared variable player_win		: integer := 0;
+shared variable last_line		: integer := MAX_A_ROWS;
 
 begin
 
@@ -153,6 +157,11 @@ begin
 		LEDVERDI <=	'0';
 		alien_posx := 0;
 		alien_posy := BLOCK_SIZE;
+		row_number := MAX_A_ROWS;
+		player_win := 0;
+		for k in 0 to MAX_A_ROWS loop
+			row_all_dead(k) := 0;
+		end loop;
 		for i in 0 to MAX_A_ROWS loop
 			for j in 0 to MAX_A loop
 				alien_obj(i)(j).y := BlOCK_SIZE * i + BLOCK_SIZE;
@@ -181,22 +190,48 @@ begin
 				ALIEN_SPEED_OUT <= '1';
 			end if;
 			
+			for k in 0 to MAX_A_ROWS loop
+				row_all_dead(k) := 0;
+			end loop;
+			row_number := MAX_A_ROWS;
+			last_line := MAX_A_ROWS;
+			
 			for i in 0 to MAX_A_ROWS loop
 				for j in 0 to MAX_A loop
+					if(alien_alive(i)(j).alive = '0') then
+						row_all_dead(i) := row_all_dead(i) + 1;
+					end if;
+					-- quando sono tutti morti e il ciclo è giunto alla fine della riga
+					if(row_all_dead(i) > MAX_A and j = MAX_A) then
+						-- se la i-esima riga morta è l'ultima riga, allora decremento il numero di righe di 1
+						if(i = last_line) then
+							last_line := last_line - 1;
+							row_number := row_number - 1;
+						end if;
+					end if;
 					alien_obj(i)(j).x := alien_posx + 2 * BlOCK_SIZE * j;
 					alien_obj(i)(j).y := alien_posy + 1 * BlOCK_SIZE * i + BLOCK_SIZE;
 				end loop;
 			end loop;
 			
+--			if(row_number < 0) then
+--				player_win := player_win + 1;
+--			end if;
+--			if (player_win = 1 or player_win = 3 or player_win = 5 or player_win = 7) then
+--				LEDVERDI <=	'1';
+--			else
+--				LEDVERDI <=	'0';
+--			end if;
+			
 			if (alien_obj(row_number)(0).y >= (BOARD_ROWS - 1) * BLOCK_SIZE ) then	
-				LEDVERDI <=	'1';
+				LEDVERDI <=	'0';
 				alien_posx := 0;
 				alien_posy := BLOCK_SIZE * 1;
 			end if;
 			ALIEN_OUT <= alien_obj;
 		end if;
-	
 	end if;
+	
 end process;
 
 end architecture;
