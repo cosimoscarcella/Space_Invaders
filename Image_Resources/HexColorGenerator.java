@@ -10,8 +10,8 @@ public class HexColorGenerator extends Component {
 	//------------------------------------------------------------------------
 	//Change velues to import your custom images
 	//------------------------------------------------------------------------
-	private static String _image_path = "C:/Users/Mino/Desktop/alien.png";
-	private static String _file_path = "C:/Users/Mino/Desktop/alien.txt";
+	private static String _image_path = "C:/Users/Mino/Desktop/win.png";
+	private static String _file_path = "C:/Users/Mino/Desktop/win.txt";
 	//------------------------------------------------------------------------
 	
 	private BufferedImage _img = null;
@@ -22,14 +22,6 @@ public class HexColorGenerator extends Component {
 		} catch (IOException e) {
 		}
 
-	}
-
-	public Dimension getPreferredSize() {
-		if (_img == null) {
-			return new Dimension(0, 0);
-		} else {
-			return new Dimension(_img.getWidth(), _img.getHeight());
-		}
 	}
 
 	// Not Used
@@ -70,11 +62,9 @@ public class HexColorGenerator extends Component {
 			int green = 0;
 			int blue = 0;
 
-			Dimension dim = getPreferredSize();
-
 			bw.write("CONSTANT sprite_img: sprite := (\n\t");
-			for (int i = 0; i < dim.height; i++) {
-				for (int j = 0; j < dim.width; j++) {
+			for (int i = 0; i < _img.getWidth(); i++) {
+				for (int j = 0; j < _img.getHeight(); j++) {
 
 					pixel = _img.getRGB(i, j);
 
@@ -85,11 +75,11 @@ public class HexColorGenerator extends Component {
 					bw.write("X\"" + convertToHex(red) + convertToHex(green)
 							+ convertToHex(blue) + "\"");
 
-					if (i == dim.height-1 && j == dim.width-1) {
+					if (i >= _img.getWidth()-1 && j >= _img.getHeight()-1) {
 						bw.write("\n");
 					} else {
 						bw.write(",");
-						if (j == dim.width - 1)
+						if (j == _img.getWidth() - 1)
 							bw.write("\n\t");
 					}
 				}
