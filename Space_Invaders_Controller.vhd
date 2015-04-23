@@ -22,6 +22,7 @@ entity Space_Invaders_Controller is
 		SHOOT					: out  std_logic;
 		BULLET_TIME			: out  std_logic;
 		ALIEN_TIME			: out  std_logic;
+		GAME_STATUS			: in  std_logic;
 		
 		-- Connections with View
 		REDRAW          			: out std_logic;
@@ -145,48 +146,51 @@ begin
 			SHIP_RIGHT      <= '0';	
 			REDRAW          <= '0';	
 			
+			if(GAME_STATUS = '0') then
 			
-			if (ship_move_time = '1') then
-			
-				if (BUTTON_LEFT = '1') then
-					SHIP_LEFT <= '1';
-					REDRAW  <= '1';
-					
-				elsif (BUTTON_RIGHT = '1') then
-					SHIP_RIGHT <= '1';
-					REDRAW <= '1';
-					
-				end if;
-			end if;
-			
-			
-			if (BUTTON_SHOT = '1' and shoot_pressed = '0') then
+				if (ship_move_time = '1') then
 				
-				SHOOT <= '1';				
-				shoot_pressed := '1';	
+					if (BUTTON_LEFT = '1') then
+						SHIP_LEFT <= '1';
+						REDRAW  <= '1';
+						
+					elsif (BUTTON_RIGHT = '1') then
+						SHIP_RIGHT <= '1';
+						REDRAW <= '1';
+						
+					end if;
+				end if;
+				
+				
+				if (BUTTON_SHOT = '1' and shoot_pressed = '0') then
+					
+					SHOOT <= '1';				
+					shoot_pressed := '1';	
+				
+				elsif (BUTTON_SHOT = '0') then
+					shoot_pressed := '0';
+				
+				elsif (START = '1') then
+					SPLASH_SCREEN_ENABLE <= '1';
+					REDRAW  <= '1';
+				
+				end if;
+				
+				if (TIME_10MS = '1' and shoot_pressed = '1') then
+					shoot_counter := shoot_counter + 1;
+				end if;
+				
+				if (shoot_counter = 50) then 
+					shoot_pressed := '0';
+					shoot_counter := 0;
+				end if;
+				
+				if (bullet_move_time = '1') then	
+					REDRAW  <= '1';
+				end if;	
 			
-			elsif (BUTTON_SHOT = '0') then
-				shoot_pressed := '0';
-			
-			elsif (START = '1') then
-				SPLASH_SCREEN_ENABLE <= '1';
-				REDRAW  <= '1';
-			
-			end if;
-			
-			if (TIME_10MS = '1' and shoot_pressed = '1') then
-				shoot_counter := shoot_counter + 1;
-			end if;
-			
-			if (shoot_counter = 50) then 
-				shoot_pressed := '0';
-				shoot_counter := 0;
-			end if;
-			
-			if (bullet_move_time = '1') then	
-				REDRAW  <= '1';
-			end if;		
-			
+			end if;				
+		
 		end if;
 	end process;
 		

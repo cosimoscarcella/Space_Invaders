@@ -155,6 +155,7 @@ begin
 						BULLET_TIME       => bullet_time,
 						ALIEN_SPEED_IN		=> alien_speed,
 						ALIEN_TIME        => alien_time,
+						GAME_STATUS			=> game_status,
 						START					=> start_game
              );
                 
