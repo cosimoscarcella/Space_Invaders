@@ -101,17 +101,18 @@ begin
 	
 	-- Gestisce il movimento temporizzato degli alieni
 	alienTimedMove : process(CLOCK, RESET_N)
-	variable speed : integer := ALIEN_MOVEMENT_SPEED;
+	variable speed : integer;
 	begin
 		if (RESET_N = '0') then
 			
 			alien_time_to_next_move  <= 0;
 			alien_move_time          <= '0';
+			speed := ALIEN_MOVEMENT_SPEED;
 		
 		elsif(rising_edge(CLOCK) and START = '0') then
 		
 			if (ALIEN_SPEED_IN = '1' and speed >= 15) then
-				speed := speed - 3;
+				speed := speed - 4;
 			end if;
 			alien_move_time <= '0';
 			
@@ -131,13 +132,15 @@ begin
 	
 	-- Gestione Pressione Buttons
 	Controller_RTL : process (CLOCK, RESET_N)
+	variable stop_game : std_logic := '0';
 	begin
 		if (RESET_N = '0') then
 			
 			SHOOT      		 <= '0';
 			SHIP_LEFT       <= '0';
 			SHIP_RIGHT      <= '0';	
-			REDRAW          <= '0';			
+			REDRAW          <= '0';	
+			stop_game := '0';
 		
 		elsif(rising_edge(CLOCK) and START = '0') then
 			
@@ -188,6 +191,13 @@ begin
 				if (bullet_move_time = '1') then	
 					REDRAW  <= '1';
 				end if;	
+				
+			else
+				-- Se il gioco è finito lancio il REDRAW una sola volta per disegnare la screen
+				if(stop_game = '0') then
+					REDRAW  <= '1';
+					stop_game := '1';
+				end if;			
 			
 			end if;				
 		

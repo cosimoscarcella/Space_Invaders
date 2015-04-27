@@ -54,7 +54,6 @@ begin
 	process(CLOCK, RESET_N)
 	variable led : std_logic_vector(9 downto 0) := "0000000000";
 	variable sprite_index, pixel_x, pixel_y, pixel_x_start_pos, pixel_y_start_pos, i, j, k : integer := 0;
-	variable stop_game_drawing : std_logic := '0';
 	variable init_ship, init_alien, init_splash, block_created : std_logic := '0';
 		
 	begin
@@ -67,8 +66,7 @@ begin
 			FB_DRAW_LINE      <= '0';
 			FB_FILL_RECT      <= '0';
 			FB_FLIP           <= '0';
-			i 						:=  0 ;
-			stop_game_drawing := '0';			
+			i 						:=  0 ;			
 
 		elsif (rising_edge(CLOCK)) then
 		
@@ -308,21 +306,13 @@ begin
 								init_splash := '0';
 								sprite_index := 0;
 								
-								-- Forzo il Flip
-								FB_FLIP  <= '1';
-								
 								substate <= FLIP_FRAMEBUFFER;
-								stop_game_drawing := '1';
 							end if;					
 						
 						when FLIP_FRAMEBUFFER =>  -- Impongo al FrameBuffer di disegnare la mia schermata	
 							
-							if(stop_game_drawing = '0') then
-								state    <= IDLE;	
-								FB_FLIP  <= '1';
-							else -- stop_game_drawing = '1'
-								state    <= IDLE;
-							end if;
+							state    <= IDLE;	
+							FB_FLIP  <= '1';
 							
 					end case;
 			end case;

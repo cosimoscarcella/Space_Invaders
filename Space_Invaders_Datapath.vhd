@@ -43,7 +43,8 @@ ship_move : process(CLOCK, RESET_N)
 begin
 
 	if (RESET_N = '0') then
-		-- Do Nothing
+		ship_pos := 0;
+		SHIP_OUT.x <= ship_pos;
 		
 	elsif(rising_edge(CLOCK) and START = '0') then
 		
@@ -141,8 +142,8 @@ end process;
 
 -- Logica movimento alieni
 alien_move : process(CLOCK, RESET_N)
-variable alien_posx, alien_posy, alien_down, player_win	: integer := 0;
-variable alien_direction 	: std_logic := '1'; --0 se va a destra, 1 se va a sinistra
+variable alien_posx, alien_posy, alien_down	: integer := 0;
+variable alien_direction 	: std_logic := '1'; -- 0 se va a destra, 1 se va a sinistra
 variable row_number			: integer := MAX_A_ROWS;
 type row_dead is array (0 to MAX_A_ROWS) of integer;
 variable row_all_dead 		: row_dead;
@@ -156,6 +157,7 @@ begin
 		
 		alien_posx := 0;
 		alien_posy := BLOCK_SIZE;
+		alien_down := 0;
 		row_number := MAX_A_ROWS;
 		
 		for k in 0 to MAX_A_ROWS loop
@@ -167,6 +169,8 @@ begin
 				alien_obj(i)(j).y := BlOCK_SIZE * i + BLOCK_SIZE;
 			end loop;
 		end loop;
+		
+		ALIEN_OUT <= alien_obj;
 		
 	elsif(rising_edge(CLOCK) and START = '0') then
 		
