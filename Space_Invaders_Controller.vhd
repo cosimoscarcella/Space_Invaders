@@ -188,7 +188,7 @@ begin
 					shoot_counter := 0;
 				end if;
 				
-				if (bullet_move_time = '1') then	
+				if (bullet_move_time = '1' and shoot_counter >= 0) then	
 					REDRAW  <= '1';
 				end if;	
 				
